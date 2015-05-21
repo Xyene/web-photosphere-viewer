@@ -2,20 +2,32 @@
 
 <html>
 <head>
-  <title>Photosphere Viewer</title>
-  <style>
-  html, body {
-  width:  100%;
-  height: 100%;
-  margin: 0px;
-  overflow:hidden;
-}
-  </style>
+    <title>Photosphere Viewer</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
-<body style="position:absolute;top:0;right:0;left:0;bottom:0">
-  <canvas id="photosphere-canvas"></canvas>
-  <script type="application/dart" src="main.dart"></script>
-  <script data-pub-inline src="packages/browser/dart.js"></script>
+<body>
+<div id="error">
+    <noscript>
+        <p>Please enable JavaScript to view this photosphere.</p>
+        <style type="text/css">
+            #container {
+                display: none;
+            }
+        </style>
+    </noscript>
+</div>
+<div id="container">
+    <img id="photosphere-load" src="load.svg"/>
+    <canvas id="photosphere-canvas" style="display:none"></canvas>
+    <div id="fullscreen-button-on" style="display:none">
+        <img id="on" class="fullscreen-state" src="fullscreen-out.svg"/>
+    </div>
+    <div id="fullscreen-button-off">
+        <img id="off" class="fullscreen-state" src="fullscreen-in.svg"/>
+    </div>
+</div>
+<script type="application/dart" src="main.dart"></script>
+<script data-pub-inline src="packages/browser/dart.js"></script>
 </body>
 </html>
