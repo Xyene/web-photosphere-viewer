@@ -1,0 +1,130 @@
+#error {
+    background:#0094ff;
+    color:black;
+    font-weight:bold;
+    position:absolute;
+    top:0;
+    right:0;
+    left:0;
+    text-align: center;
+    line-height:1.7em;
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+#error a {
+    color:white;
+    text-decoration: none;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    background: black;
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+#container {
+    overflow: hidden;
+}
+
+#photosphere-load {
+    position: absolute;
+    margin: auto;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /*width:350px;*/
+    height: 13%;
+}
+
+#fullscreen-button-on, #fullscreen-button-off {
+    position: fixed;
+    right: 15px;
+    top: 15px;
+    border: 1px solid rgba(0, 0, 0, 0.6);
+    border-radius: 6px;
+    width: 30px;
+    height: 30px;
+    color: white;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.fullscreen-state {
+    padding: 5px;
+    width: 20px;
+    height: 20px;
+}
+
+body {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+}
+
+#container:-webkit-full-screen #fullscreen-button-on {
+    display: none;
+}
+
+#container:-moz-full-screen #fullscreen-button-on {
+    display: none;
+}
+
+#container:-ms-fullscreen #fullscreen-button-on {
+    display: none;
+}
+
+#container:fullscreen #fullscreen-button-on {
+    display: none;
+}
+
+#container:-webkit-full-screen #fullscreen-button-off {
+    display: block;
+}
+
+#container:-moz-full-screen #fullscreen-button-off {
+    display: block;
+}
+
+#container:-ms-fullscreen #fullscreen-button-off {
+    display: block;
+}
+
+#container:fullscreen #fullscreen-button-off {
+    display: block;
+}
+
+#container:not(:-webkit-full-screen) #fullscreen-button-on {
+    display: block;
+}
+
+#container:not(:-moz-full-screen) #fullscreen-button-on {
+    display: block;
+}
+
+#container:not(:-ms-fullscreen) #fullscreen-button-on {
+    display: block;
+}
+
+#container:not(:fullscreen) #fullscreen-button-on {
+    display: block;
+}
+
+#container:not(:-webkit-full-screen) #fullscreen-button-off {
+    display: none;
+}
+
+#container:not(:-moz-full-screen) #fullscreen-button-off {
+    display: none;
+}
+
+#container:not(:-ms-fullscreen) #fullscreen-button-off {
+    display: none;
+}
+
+#container:not(:fullscreen) #fullscreen-button-off {
+    display: none;
+}
