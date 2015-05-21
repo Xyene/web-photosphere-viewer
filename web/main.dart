@@ -1,8 +1,11 @@
 import 'dart:html';
+import 'dart:io';
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:vector_math/vector_math.dart';
 import 'dart:web_gl';
 import 'dart:math';
+import 'dart:js';
 
 class PhotosphereViewer {
   static const String VERTEX_SHADER_SOURCE = """
@@ -27,8 +30,7 @@ class PhotosphereViewer {
       uniform sampler2D u_photosphere;
 
       void main(void) {
-          vec4 textureColor = texture2D(u_photosphere, vec2(v_uv.s, v_uv.t));
-          gl_FragColor = textureColor;
+          gl_FragColor = texture2D(u_photosphere, v_uv);
       }
     """;
 
@@ -52,6 +54,9 @@ class PhotosphereViewer {
   Buffer sphereBuffer;
   int numIndices;
 
+  var keys = <int, bool>{
+  };
+
   void rebuildRotationMatrix() {
     var sphereRotationMatrix = new Matrix4
     .identity()
@@ -59,7 +64,7 @@ class PhotosphereViewer {
       ..rotate(new Vector3(0.0, 0.0, 1.0), radians(-totX / 5));
 
     mvpMatrix = makePerspectiveMatrix(
-        radians(60.0), canvas.width / canvas.height, 0.1, 10000.0).multiply(
+        radians(45.0), canvas.width / canvas.height, 0.1, 10000.0).multiply(
         new Matrix4.identity()
         .translate(new Vector3(0.0, 0.0, 0.0))
         .multiply(sphereRotationMatrix));
@@ -87,27 +92,29 @@ class PhotosphereViewer {
       updateViewport();
       rebuildRotationMatrix();
     });
-    document.onKeyDown.listen((KeyboardEvent event) {
-      var d = 3;
-      switch (event.keyCode) {
-        case 37:
-          totX -= d;
-          break;
-        case 39:
-          totX += d;
-          break;
-        case 38:
-          totY -= d;
-          break;
-        case 40:
-          totY += d;
-          break;
-      }
+    document.onKeyDown.listen((KeyboardEvent event) => keys[event.keyCode] = true);
+    document.onKeyUp.listen((KeyboardEvent event) => keys[event.keyCode] = false);
+    document.onBlur.listen((Event) => keys.clear());
+    document.onMouseUp.listen((MouseEvent event) => mouseDown = false);
+
+    document.onFullscreenChange.listen((Event e) {
+//      var element = document.querySelector("#fullscreen-button");
+//      bool fullscreen = element.style.display == 'none';
+//      element.style.display = fullscreen ? 'block' : 'none';
+    });
+
+    document.querySelector("#fullscreen-button-on").onClick.listen((Event e) {
+      fullscreenWorkaround(document.querySelector("#container"));
+      updateViewport();
       rebuildRotationMatrix();
     });
-    document.onMouseUp.listen((MouseEvent event) {
-      mouseDown = false;
+
+    document.querySelector("#fullscreen-button-off").onClick.listen((Event e) {
+      fullscreenWorkaroundOff();
+      updateViewport();
+      rebuildRotationMatrix();
     });
+
     document.onMouseMove.listen((MouseEvent event) {
       if (!mouseDown) {
         return;
@@ -123,7 +130,9 @@ class PhotosphereViewer {
       lastMouseY = curY;
 
       rebuildRotationMatrix();
-    });
+    }
+
+    );
   }
 
   bool init() {
@@ -160,28 +169,14 @@ class PhotosphereViewer {
     program = p;
 
     vertexPositionAttribute = gl.getAttribLocation(program, "a_vertex");
-    gl.enableVertexAttribArray(vertexPositionAttribute);
     textureCoordAttribute = gl.getAttribLocation(program, "a_uv");
-    gl.enableVertexAttribArray(textureCoordAttribute);
     mvpMatrixUniform = gl.getUniformLocation(program, "u_mvpmatrix");
     samplerUniform = gl.getUniformLocation(program, "u_photosphere");
 
-    //"http://cors-xysoft.rhcloud.com/cors?p=" +
-    loadTexture(Uri.base.queryParameters['i'], (Texture text, ImageElement ele) {
-      gl.pixelStorei(UNPACK_FLIP_Y_WEBGL, 1);
+    gl.enableVertexAttribArray(vertexPositionAttribute);
+    gl.enableVertexAttribArray(textureCoordAttribute);
 
-      gl.bindTexture(TEXTURE_2D, text);
-      gl.texImage2DImage(TEXTURE_2D, 0, RGBA, RGBA, UNSIGNED_BYTE, ele);
-      gl.texParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, LINEAR);
-      gl.texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, LINEAR_MIPMAP_NEAREST);
-      gl.generateMipmap(TEXTURE_2D);
-
-      gl.bindTexture(TEXTURE_2D, null);
-
-      sphereTexture = text;
-    });
-
-    var radius = 50;
+    var radius = 500;
     var divide = 30;
 
     var interleaved = [];
@@ -224,14 +219,30 @@ class PhotosphereViewer {
     gl.bindBuffer(ARRAY_BUFFER, sphereBuffer);
     gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(interleaved), STATIC_DRAW);
 
-    return true;
-  }
-
-  void loadTexture(String url, handle(Texture tex, ImageElement ele)) {
-    var texture = gl.createTexture();
+    sphereTexture = gl.createTexture();
     var element = new ImageElement();
-    element.onLoad.listen((e) => handle(texture, element));
-    element.src = url;
+    element.onLoad.listen((e) {
+      gl.pixelStorei(UNPACK_FLIP_Y_WEBGL, 1);
+
+      gl.bindTexture(TEXTURE_2D, sphereTexture);
+      gl.texImage2DImage(TEXTURE_2D, 0, RGBA, RGBA, UNSIGNED_BYTE, element);
+      gl.texParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, LINEAR);
+      gl.texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, LINEAR);
+
+      gl.bindTexture(TEXTURE_2D, null);
+
+      // Wait for image to finish loading before getting rid of the spinner
+      //
+      //
+      document.querySelector("#fullscreen-button-on").style.display = 'block';
+      document.querySelector("#photosphere-load").style.display = "none";
+      document.querySelector("#photosphere-canvas").style.display = "block";
+
+      poll();
+      run();
+    });
+    element.src = Uri.base.queryParameters['i'];
+    return true;
   }
 
   void update() {
@@ -241,32 +252,70 @@ class PhotosphereViewer {
     gl.activeTexture(TEXTURE0);
     gl.bindTexture(TEXTURE_2D, sphereTexture);
     gl.uniform1i(samplerUniform, 0);
+    gl.uniformMatrix4fv(mvpMatrixUniform, false, mvpMatrix.storage);
 
     gl.bindBuffer(ARRAY_BUFFER, sphereBuffer);
     // Stride is 20: 12 vertices + 8 uvs
     gl.vertexAttribPointer(vertexPositionAttribute, 3, FLOAT, false, 20, 0);
     gl.vertexAttribPointer(textureCoordAttribute, 2, FLOAT, false, 20, 12);
-
-    gl.uniformMatrix4fv(mvpMatrixUniform, false, mvpMatrix.storage);
-
     gl.drawArrays(TRIANGLE_STRIP, 0, numIndices);
-
-    window.requestAnimationFrame((num time) => update());
   }
 
-  void run() {
-    window.requestAnimationFrame((num time) => update());
+
+  void poll() {
+    new Timer.periodic(new Duration(milliseconds: (1000 / 120).round()), (Timer timer) {
+      num dx = 0;
+      num dy = 0;
+      if (keys[37]) dx -= 1;
+      if (keys[39]) dx += 1;
+      if (keys[38]) dy -= 1;
+      if (keys[40]) dy += 1;
+
+      totX += min(1, max(-1, dx));
+      totY += min(1, max(-1, dy));
+      rebuildRotationMatrix();
+    });
+  }
+
+  void run() async {
+    while (true) {
+      var time = await window.animationFrame;
+      update();
+    }
   }
 }
 
+void fullscreenWorkaround(Element element) {
+  var elem = new JsObject.fromBrowserObject(element);
+  List<String> vendors = ['requestFullscreen', 'mozRequestFullScreen', 'webkitRequestFullscreen', 'msRequestFullscreen'];
+  for (String vendor in vendors) {
+    if (elem.hasProperty(vendor)) {
+      elem.callMethod(vendor);
+      return;
+    }
+  }
+}
+
+void fullscreenWorkaroundOff() {
+  var elem = new JsObject.fromBrowserObject(document);
+  List<String> vendors = ['exitFullscreen, ''mozCancelFullScreen', 'mozCancelFullScreen', 'webkitCancelFullScreen', 'msExitFullscreen'];
+  for (String vendor in vendors) {
+    if (elem.hasProperty(vendor)) {
+      elem.callMethod(vendor);
+      return;
+    }
+  }
+}
+
+var app;
+
 void main() {
-  var app = new PhotosphereViewer();
-  if (app.init()) {
-    app.run();
+  app = new PhotosphereViewer();
+  if (false) {
+    print('OK!');
   } else {
-    document.querySelector('body').appendHtml(
-        """<p>Sorry, your browser probably doesn\'t support WebGL.
-      For more information visit
-      <a href="http://get.webgl.org/" target="_blank">http://get.webgl.org/</a>.</p>""");
+    document.querySelector("#container").style.display = "none";
+    document.querySelector('#error').appendHtml(
+        """<p>Sorry, your browser probably doesn\'t support <a href="http://get.webgl.org/" target="_blank">WebGL</a>.</p>""");
   }
 }
