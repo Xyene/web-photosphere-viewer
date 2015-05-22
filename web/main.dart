@@ -1,5 +1,4 @@
 import 'dart:html';
-import 'dart:io';
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:vector_math/vector_math.dart';
@@ -82,6 +81,15 @@ class PhotosphereViewer {
     gl = canvas.getContext("experimental-webgl");
 
     rebuildRotationMatrix();
+
+    for (var key in [["left", 37], ["right", 39], ["up", 38], ["down", 40]]) {
+      var id = key[0];
+      var code = key[1];
+      var e = document.querySelector("#$id");
+      e.onMouseDown.listen((Event) => keys[code] = true);
+      e.onMouseUp.listen((Event) => keys[code] = false);
+      e.onMouseLeave.listen((Event) => keys[code] = false);
+    }
 
     canvas.onMouseDown.listen((MouseEvent event) {
       mouseDown = true;
@@ -311,7 +319,7 @@ var app;
 
 void main() {
   app = new PhotosphereViewer();
-  if (false) {
+  if (app.init()) {
     print('OK!');
   } else {
     document.querySelector("#container").style.display = "none";

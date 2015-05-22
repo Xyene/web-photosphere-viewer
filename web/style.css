@@ -1,18 +1,18 @@
 #error {
-    background:#0094ff;
-    color:black;
-    font-weight:bold;
-    position:absolute;
-    top:0;
-    right:0;
-    left:0;
+    background: #0094ff;
+    color: black;
+    font-weight: bold;
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
     text-align: center;
-    line-height:1.7em;
+    line-height: 1.7em;
     font-family: Helvetica, Arial, sans-serif;
 }
 
 #error a {
-    color:white;
+    color: white;
     text-decoration: none;
 }
 
@@ -44,17 +44,71 @@ html, body {
     right: 15px;
     top: 15px;
     border: 1px solid rgba(0, 0, 0, 0.6);
-    border-radius: 6px;
     width: 30px;
     height: 30px;
     color: white;
     background: rgba(0, 0, 0, 0.5);
 }
 
-.fullscreen-state {
+.ui-icon {
     padding: 5px;
     width: 20px;
     height: 20px;
+    transition-duration: 0.3s;
+}
+
+.ui-icon:hover, .ui-icon-active {
+    background: rgba(0, 0, 0, 0.7);
+    transition-duration: 0.3s;
+}
+
+#controls {
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    width: 90px;
+    height: 90px;
+}
+
+#controls div {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: 1px solid rgba(0, 0, 0, 0.6);
+}
+
+#controls #up {
+    top: -63px;
+    left: 30px;
+}
+
+#controls #down {
+    bottom: 32px;
+    left: 30px;
+}
+
+#controls #left {
+    top: 0px;
+    left: -2px;
+}
+
+#controls #right {
+    top: 32px;
+    right: -62px;
+}
+
+#controls #up img {
+    transform: rotate(-90deg);
+}
+
+#controls #down img {
+    transform: rotate(90deg);
+}
+
+#controls #left img {
+    transform: rotate(180deg);
 }
 
 body {
