@@ -43,11 +43,9 @@ html, body {
     position: fixed;
     right: 15px;
     top: 15px;
-    border: 1px solid rgba(0, 0, 0, 0.6);
     width: 30px;
     height: 30px;
     color: white;
-    background: rgba(0, 0, 0, 0.5);
 }
 
 .ui-icon {
@@ -55,6 +53,8 @@ html, body {
     width: 20px;
     height: 20px;
     transition-duration: 0.3s;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(0, 0, 0, 0.6);
 }
 
 .ui-icon:hover, .ui-icon-active {
@@ -74,9 +74,7 @@ html, body {
     position: relative;
     width: 30px;
     height: 30px;
-    background: rgba(0, 0, 0, 0.5);
     color: white;
-    border: 1px solid rgba(0, 0, 0, 0.6);
 }
 
 #controls #up {
