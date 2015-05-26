@@ -105,20 +105,28 @@ class PhotosphereViewer {
     document.onBlur.listen((Event) => keys.clear());
     document.onMouseUp.listen((MouseEvent event) => mouseDown = false);
 
-    document.onFullscreenChange.listen((Event e) {
-//      var element = document.querySelector("#fullscreen-button");
-//      bool fullscreen = element.style.display == 'none';
-//      element.style.display = fullscreen ? 'block' : 'none';
-    });
-
     document.querySelector("#fullscreen-button-on").onClick.listen((Event e) {
-      fullscreenWorkaround(document.querySelector("#container"));
+      var elem = new JsObject.fromBrowserObject(document.querySelector("#container"));
+      List<String> vendors = ['requestFullscreen', 'mozRequestFullScreen', 'webkitRequestFullscreen', 'msRequestFullscreen'];
+      for (String vendor in vendors) {
+        if (elem.hasProperty(vendor)) {
+          elem.callMethod(vendor);
+          return;
+        }
+      }
       updateViewport();
       rebuildRotationMatrix();
     });
 
     document.querySelector("#fullscreen-button-off").onClick.listen((Event e) {
-      fullscreenWorkaroundOff();
+      var elem = new JsObject.fromBrowserObject(document);
+      List<String> vendors = ['exitFullscreen, ''mozCancelFullScreen', 'mozCancelFullScreen', 'webkitCancelFullScreen', 'msExitFullscreen'];
+      for (String vendor in vendors) {
+        if (elem.hasProperty(vendor)) {
+          elem.callMethod(vendor);
+          return;
+        }
+      }
       updateViewport();
       rebuildRotationMatrix();
     });
@@ -139,7 +147,6 @@ class PhotosphereViewer {
 
       rebuildRotationMatrix();
     }
-
     );
   }
 
@@ -240,8 +247,6 @@ class PhotosphereViewer {
       gl.bindTexture(TEXTURE_2D, null);
 
       // Wait for image to finish loading before getting rid of the spinner
-      //
-      //
       document.querySelector("#fullscreen-button-on").style.display = 'block';
       document.querySelector("#photosphere-load").style.display = "none";
       document.querySelector("#photosphere-canvas").style.display = "block";
@@ -289,28 +294,6 @@ class PhotosphereViewer {
     while (true) {
       var time = await window.animationFrame;
       update();
-    }
-  }
-}
-
-void fullscreenWorkaround(Element element) {
-  var elem = new JsObject.fromBrowserObject(element);
-  List<String> vendors = ['requestFullscreen', 'mozRequestFullScreen', 'webkitRequestFullscreen', 'msRequestFullscreen'];
-  for (String vendor in vendors) {
-    if (elem.hasProperty(vendor)) {
-      elem.callMethod(vendor);
-      return;
-    }
-  }
-}
-
-void fullscreenWorkaroundOff() {
-  var elem = new JsObject.fromBrowserObject(document);
-  List<String> vendors = ['exitFullscreen, ''mozCancelFullScreen', 'mozCancelFullScreen', 'webkitCancelFullScreen', 'msExitFullscreen'];
-  for (String vendor in vendors) {
-    if (elem.hasProperty(vendor)) {
-      elem.callMethod(vendor);
-      return;
     }
   }
 }
